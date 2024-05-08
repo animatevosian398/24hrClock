@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>a Clock</title>
+
+<style>
+    body {
+            border-radius: 5%;
+            text-align: center;
+            background-color:white;
+        }
+
+        svg {
+            background-color: rgb(238, 241, 239); 
+            padding:3%;
+            text-align: center;
+            border-radius:5%; 
+            opacity:0.8; 
+        }
+        #clock{
+            padding:1%;
+        }
+
+        #circleContainer {
+            padding:10px;
+        }
+
+        circle {
+            fill: blue;
+            opacity: 0.2;
+            
+        }
+        .hourCircle {
+            stroke:blue; 
+            opacity:0.9;
+
+        }
+
+        .hourLine{
+            opacity:100%;
+        }
+        
+</style>
+</head>
+<body>
+  
+    <div>
+        <div id="clock"></div>
+        <!--end of clock div-->
+        <div id="circleContainer">
+            <svg width="1000" height="700" id="circleRings">
+            </svg>
+        </div>
+    </div>
+</body>
+
+    <script type="module" src="script.js" async></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+<script type="module" async>
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm"
+
+const initialTime = Date.now();
+
+const clock = d3.select('#clock');
+const svg = d3.select('#circleRings');
+const maxRadius = 180;
+const timeContainer = clock.append('div');
+//SECONDS
+//constants for second circles  //chat gpt helped with grid creation
+const gridRows = 6; // Number of rows in the grid
+const gridColumns = 10; // Number of columns in the grid
+const circleSpacing = -50; // Spacing between circles
+const circleDiameter = 100; // Diameter of each circle 140
+const circleRadius = circleDiameter / 2; // Radius of each circle
+const gridWidth = gridColumns * (circleDiameter + circleSpacing);
+const maxCirclesPerRow = Math.floor(gridWidth / (circleDiameter + circleSpacing)); 
+//rounds down ^ (width/ amount of space circles/spaces take up to get # of circles in each row. math.floor rounds down to integer )
+
+//more constants for times & loop beginning
+function loop() {
+    const time = new Date();
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    const seconds = time.getSeconds();
+    const delta = (time.getTime() - initialTime);
+
+    // timeContainer.html(hours + ' ' + minutes + ' ' + seconds + '[Frame: ' + delta + ']');
+    
+    
+    // Find number of circles based on the current second)
+    const numCircles = seconds;
+    // Clear the SVG container
+    svg.selectAll('circle').remove();
+    // Create circles in a grid 
+    for (let i = 0; i < numCircles; i++) {
+        const rowIndex = Math.floor(i / maxCirclesPerRow);
+        const columnIndex = i % maxCirclesPerRow;
+        const x = columnIndex * (circleDiameter + circleSpacing) + circleRadius; //finding x position
+        const y = rowIndex * (circleDiameter + circleSpacing) + circleRadius;//finding y position
+        svg.append("circle") //append the new circle to svg
+            .attr("cx", x) //using x found above, sets the x (horiznotal) position
+            .attr("cy", y) //using y found above sets the y (vertical) position
+            .attr("r", circleRadius); //circleRadius was calculated above (diameter/2)
+             
+    }
+
+ //HOURS LINE GRID - ////////////////////////////////////
+ //Source: Grid is based on circle grid from chat gpt
+        const gridRowsHr = 4; // Number of rows in the grid
+        const gridColumnsHr = 6; // Number of columns in the grid
+        const lineSpacingHr = 10; // Spacing between lines
+        const lineWidthHr = 15; // Width of each line
+        const lineHeightHr = 130; // Height of each line
+        const gridWidthHr = gridColumnsHr * (lineWidthHr + lineSpacingHr);
+        const maxLinesPerRowHr = Math.floor(gridWidthHr / (lineWidthHr + lineSpacingHr));
+
+        // Generate vertical lines for each hour also in a grid
+        for (let i = 1; i <= hours; i++) {
+          const rowIndexHr = Math.floor(i / maxLinesPerRowHr);
+          const columnIndexHr = i % maxLinesPerRowHr;
+          const x_hr = columnIndexHr * (lineWidthHr + lineSpacingHr); // Shift horizontally
+          const y_hr = rowIndexHr * (lineHeightHr + lineSpacingHr); // Shift vertically
+          svg.append("line")
+            .attr("class", "hourLine") 
+            .attr("x1", x_hr + 850) //shifting 800 over
+            .attr("y1", y_hr + 150) //100
+            .attr("x2", x_hr + 750)//700
+            .attr("y2", y_hr + 150 + lineHeightHr) //100
+            .attr("stroke-width", lineWidthHr)
+            .attr("stroke", "blue"); 
+            } //chat gpt provided the framework for this grid. 
+
+    //MINUTES/////////////////////////
+   // Remove any existing ellipses (ellipse, but essentially made a circle since equal rx and ry)
+    svg.selectAll('.minuteEllipse').remove();
+        const initialRx=15;
+        const initialRy=15;
+    
+    // Add ellipses based on the number of minutes
+            for (let i = 0; i < minutes; i++) {
+                const newRx = initialRx + i*2 ; // Increase the x radius
+                const newRy = initialRy + i*2; // Increase the y radius
+                svg.append("ellipse")
+                    .attr("class", "minuteEllipse")
+                    .attr("cx", 550)
+                    .attr("cy", 440)
+                    .attr("rx", newRx)
+                    .attr("ry", newRy)
+                    .attr("fill", "blue")
+                    .attr("opacity", 0.4)
+                    .attr("stroke", 'navy')
+                    .attr("stroke-width", '10px');
+            } 
+
+            
+    
+    console.log('loop happening');
+    window.requestAnimationFrame(loop);
+    console.log(hours);
+
+}
+
+loop();
+</script>
+</body>
+</html>
+
